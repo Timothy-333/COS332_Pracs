@@ -23,6 +23,11 @@ int main()
     infile >> x >> y >> z;
     infile.close();
 
+    bool boundary = false;
+    if (y == 0)
+    {
+        boundary = true;
+    }
     // Calculate next Fibonacci number
     int new_num = y + z;
     // Update file with new sequence
@@ -48,7 +53,8 @@ int main()
               << "<body>\n";
     std::cout << "<p>Fibonacci Sequence:</p>\n";
     std::cout << "<p>" << y << ", " << z << ", " << new_num << "</p>\n";
-    std::cout << "<a href=\"/cgi-bin/fib_prev.cgi\">Previous</a>\n";
+    if (!boundary)
+        std::cout << "<a href=\"/cgi-bin/fib_prev.cgi\">Previous</a>\n";
     std::cout << "<a href=\"/cgi-bin/fib_next.cgi\">Next</a>\n";
     std::cout << "</body>\n"
               << "</html>\n";
