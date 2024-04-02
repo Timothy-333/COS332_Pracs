@@ -70,13 +70,20 @@ def handle_client(conn, questions):
     conn.close()
 
 def start_server(questions):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('localhost', 55555))
-        s.listen()
-        while True:
-            conn, addr = s.accept()
-            thread = threading.Thread(target=handle_client, args=(conn, questions.copy()))
-            thread.start()
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('localhost', 55555))
+            s.listen()
+            s.settimeout(1)
+            while True:
+                try:
+                    conn, addr = s.accept()
+                except socket.timeout:
+                    continue
+                thread = threading.Thread(target=handle_client, args=(conn, questions.copy()))
+                thread.start()
+    except KeyboardInterrupt:
+        print("Server is stopping...")
 
 questions = load_questions('questions.txt')
 total = len(questions)
