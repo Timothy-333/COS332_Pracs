@@ -1,7 +1,6 @@
 import socket
 import random
 import threading
-from urllib.parse import urlparse, parse_qs
 
 class Question:
     def __init__(self, question, options, answer):
@@ -60,11 +59,18 @@ def handle_client(conn, addr, questions):
     line_parts = get_line.split(' ')
     method, path = line_parts[0], line_parts[1]
     if method == 'GET':
-        # Parse the URL and the query parameters
-        parsed_path = urlparse(path)
-        params = parse_qs(parsed_path.query)
+        # Parse the URL and the query parameters manually
+        path_parts = path.split('?')
+        path = path_parts[0]
+        params = {}
+        if len(path_parts) > 1:
+            query_string = path_parts[1]
+            query_parts = query_string.split('&')
+            for part in query_parts:
+                name, value = part.split('=')
+                params[name] = value
 
-        if parsed_path.path == '/favicon.ico':
+        if path == '/favicon.ico':
             return
         # Check if the 'answer' parameter is provided
         if 'answer' in params and questions and ip in current_questions:
