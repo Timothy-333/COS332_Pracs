@@ -1,0 +1,26 @@
+?The successor of IPv4 is:
+-TCP
+-Ethernet
+-IPv5
++IPv6
+-None of the above
+?DNS normally uses the following transport layer protocol
+-TCP
++UDP
+-IEEE 802.3
+-All of the above
+?What is the default port number for HTTP?
+-80
+-443
+-8080
+-23
+?Which programming language is known for its simplicity and readability?
+-Python
+-Java
+-C++
++Ruby
+?Which of the following are data structures in C++?
+-Strings
++Linked Lists
++Stacks
+-Integers
