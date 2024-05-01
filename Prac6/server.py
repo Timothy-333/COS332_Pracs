@@ -46,7 +46,6 @@ def load_questions(filename):
             questions.append(Question(question, options, answer))
     return questions
 
-
 def handle_client(conn, addr, questions):
     global score
     global current_questions
@@ -72,12 +71,20 @@ def handle_client(conn, addr, questions):
 
         if path == '/favicon.ico':
             return
-        
+
         if 'email' in params:
-            email_results(score, total, params['email'][0])
+            email_results(score, total, params['email'].replace('%40', '@'))
+            response_body = 'Email has been sent to ' + params['email'].replace('%40', '@') + '<br/>\r\n'
+            response = ('HTTP/1.1 200 OK\r\n' +
+                        'Content-type: text/html\r\n' +
+                        'Content-Length: {}\r\n'.format(len(response_body)) +
+                        '\r\n' +
+                        response_body)
+            conn.sendall(response.encode())
+            return
 
         # Check if the 'answer' parameter is provided
-        if 'answer' in params and questions and ip in current_questions:
+        if 'answer' in params and ip in current_questions:
             answer = params['answer'][0]
             # Check the answer and update the score
             if answer.upper() == current_questions[ip].answer:
@@ -116,21 +123,64 @@ def handle_client(conn, addr, questions):
         conn.sendall(response.encode())
     conn.close()
 
+
 def email_results(score, total, recipient):
     message = 'Subject: Your Quiz Results\r\n\r\n'
     message += 'Game over! Your score is: {}/{}'.format(score, total)
+    with socket.create_connection(('localhost', 25)) as server:
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect(('localhost', 25))
+        server.sendall(b'HELO localhost\r\n')
+        while True:
+            reply = server.recv(1024)
+            print(reply)
+            if reply.startswith(b'220'):
+                break
+            elif not reply:
+                raise Exception('HELO failed: no response')
 
-        # Send the SMTP commands
-        s.sendall(b'HELO localhost\r\n')
-        s.sendall(b'MAIL FROM:<quizmaster@localhost>\r\n')
-        s.sendall('RCPT TO:<{}>\r\n'.format(recipient).encode())
-        s.sendall(b'DATA\r\n')
-        s.sendall(message.encode())
-        s.sendall(b'\r\n.\r\n')
-        s.sendall(b'QUIT\r\n')
+        server.sendall(b'MAIL FROM:<quizmaster@localhost>\r\n')
+        while True:
+            reply = server.recv(1024)
+            print('Response to MAIL FROM: command:', reply)
+            if reply.startswith(b'250'):
+                break
+            elif not reply:
+                raise Exception('MAIL FROM failed: no response')
+        server.sendall('RCPT TO:<{}>\r\n'.format(recipient).encode())
+        while True:
+            reply = server.recv(1024)
+            print('Response to RCPT TO: command:', reply, recipient)
+            if reply.startswith(b'250'):
+                break
+            elif not reply:
+                raise Exception('RCPT TO failed: no response')
+
+        server.sendall(b'DATA\r\n')
+        while True:
+            reply = server.recv(1024)
+            print('Response to DATA command:', reply)
+            if reply.startswith(b'354'):
+                break
+            elif not reply:
+                raise Exception('DATA failed: no response')
+
+        server.sendall((message + '\r\n.\r\n').encode())
+        while True:
+            reply = server.recv(1024)
+            print('Response to email data:', reply)
+            if reply.startswith(b'250'):
+                break
+            elif not reply:
+                raise Exception('End of data marker failed: no response')
+
+        server.sendall(b'QUIT\r\n')
+        while True:
+            reply = server.recv(1024)
+            print('Response to QUIT command:', reply)
+            if reply.startswith(b'221'):
+                break
+            elif not reply:
+                raise Exception('QUIT failed: no response')
 
 def start_server(questions):
     try:

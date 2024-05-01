@@ -1,0 +1,6 @@
+for timothy@localhost
+nano /etc/aliases set to timothy
+sudo touch /var/mail/timothy
+sudo chown timothy:mail /var/mail/timothy
+sudo chmod 660 /var/mail/timothy
+sudo nano /etc/postfix/main.cf - check config file
