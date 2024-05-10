@@ -13,7 +13,7 @@ password = os.getenv('PASSWORD')
 
 # SMTP server details
 smtp_server = os.getenv('SMTP_SERVER')
-smtp_port = int(os.getenv('SMTP_PORT'))  # Convert to int because environment variables are loaded as strings
+smtp_port = os.getenv('SMTP_PORT')  # Convert to int because environment variables are loaded as strings
 
 
 # Connect to the POP3 server and log in
