@@ -6,6 +6,11 @@ import logging
 PROXY_USERNAME = "proxyuser"
 PROXY_PASSWORD = "proxypass"
 
+# The address and credentials for the POP3 server
+POP3_SERVER_ADDR = ("pop3.server.com", 110)
+POP3_USERNAME = "pop3user"
+POP3_PASSWORD = "pop3pass"
+
 def authenticate(client_sock):
     # Read the username and password from the client
     username = client_sock.recv(1024).decode("utf-8")
@@ -16,6 +21,31 @@ def authenticate(client_sock):
         return True
     else:
         return False
+
+def connect_to_pop3_server():
+    # Create a socket and connect to the POP3 server
+    server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_sock.connect(POP3_SERVER_ADDR)
+
+    # Authenticate with the POP3 server
+    server_sock.send(f"USER {POP3_USERNAME}\r\n".encode("utf-8"))
+    server_sock.send(f"PASS {POP3_PASSWORD}\r\n".encode("utf-8"))
+
+    return server_sock
+
+def relay_messages(client_sock, server_sock):
+    while True:
+        # Read a message from the client and send it to the server
+        client_msg = client_sock.recv(1024)
+        if not client_msg:
+            break
+        server_sock.send(client_msg)
+
+        # Read a message from the server and send it to the client
+        server_msg = server_sock.recv(1024)
+        if not server_msg:
+            break
+        client_sock.send(server_msg)
 
 def handle_client(client_sock):
     # Authenticate the client
