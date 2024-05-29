@@ -16,34 +16,32 @@ class SMTPProxyServer:
         self.server_socket = None
 
     def handle_client(self, client_socket):
-    logging.info("Client connected")
-
-    try:
-        # Connect to the real SMTP server and get its greeting
-        with socket.create_connection((REAL_SMTP_HOST, REAL_SMTP_PORT)) as smtp_socket:
-            server_greeting = smtp_socket.makefile('r').readline()
-            logging.debug("Server greeting: %s", server_greeting.strip())
-
-            # Send server greeting to client
-            client_socket.sendall(server_greeting.encode())
-
-            # Receive and forward subsequent commands and email data
-            client_file = client_socket.makefile('r')
-            smtp_file = smtp_socket.makefile('r')
-            while True:
-                command = client_file.readline()
-                if not command:
-                    break
-                smtp_socket.sendall(command.encode())
-                reply = smtp_file.readline()
-                client_socket.sendall(reply.encode())
-
-    except Exception as e:
-        logging.error("Error handling client: %s", e)
-
-    finally:
-        client_socket.close()
-        logging.info("Client disconnected")
+        logging.info("Client connected")
+    
+        try:
+            # Connect to the real SMTP server and get its greeting
+            with socket.create_connection((REAL_SMTP_HOST, REAL_SMTP_PORT)) as smtp_socket:
+                server_greeting = smtp_socket.recv(1024)
+                logging.debug("Server greeting: %s", server_greeting.decode().strip())
+    
+                # Send server greeting to client
+                client_socket.sendall(server_greeting)
+    
+                # Receive and forward subsequent commands and email data
+                while True:
+                    data = client_socket.recv(1024)
+                    if not data:
+                        break
+                    smtp_socket.sendall(data)
+                    reply = smtp_socket.recv(1024)
+                    client_socket.sendall(reply)
+    
+        except Exception as e:
+            logging.error("Error handling client: %s", e)
+    
+        finally:
+            client_socket.close()
+            logging.info("Client disconnected")
 
     def start_server(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
