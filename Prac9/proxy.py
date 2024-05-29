@@ -19,9 +19,7 @@ POP3_SERVER_ADDR = (os.getenv('POP3_SERVER_ADDR'), int(os.getenv('POP3_SERVER_PO
 POP3_USERNAME = os.getenv('POP3_USERNAME')
 POP3_PASSWORD = os.getenv('POP3_PASSWORD')
 
-username = ""
 def authenticate(client_sock):
-    global username
     # Read the username and password from the client
     client_sock.send(b"+OK POP3 proxy ready\r\n")
     data = client_sock.recv(1024).decode("utf-8").strip()
@@ -43,11 +41,11 @@ def authenticate(client_sock):
         if username == PROXY_USERNAME and password == PROXY_PASSWORD or (username == ADMIN_USERNAME and password == ADMIN_PASSWORD):
             client_sock.send(b"+OK Proxy authentication successful\r\n")
             print("Proxy authentication successful")
-            return True
+            return username
         else:
             client_sock.send(b"-ERR Proxy authentication failed\r\n")
             print("Proxy authentication failed")
-            return False
+            return none
     else:
         client_sock.send(b"-ERR Invalid command\r\n")
         return False
@@ -126,7 +124,8 @@ def relay_messages(client_sock, server_sock, username):
 def handle_client(client_sock):
     try:
         # Authenticate the client
-        if not authenticate(client_sock):
+        username = authenticate(client_sock)
+        if not username:
             client_sock.close()
             return
         
@@ -134,7 +133,7 @@ def handle_client(client_sock):
         server_sock = connect_to_pop3_server()
 
         # Relay messages between the client and the POP3 server
-        relay_messages(client_sock, server_sock)
+        relay_messages(client_sock, server_sock, username)
     except Exception as e:
         logging.error("Error handling client: %s", e)
     finally:
