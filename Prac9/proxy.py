@@ -1,3 +1,4 @@
+# Authors: Timothy Whitaker - u22744968, Scott Bebington - u21546216
 import os
 import socket
 import threading
@@ -93,15 +94,13 @@ def relay_messages(client_sock, server_sock, username):
             # if server_msg.startswith(b"+OK") and b"\r\n.\r\n" in server_msg:
             #     # Parse the email
             #     email = message_from_bytes(server_msg)
-
-                # # Check if the subject line contains 'Confidential'
-                # if "Confidential" in email["Subject"]:
-                #     # Replace the email with a cover email
-                #     cover_email = EmailMessage()
-                #     cover_email['Subject'] = 'Just testing'
-                #     cover_email.set_content('Just testing')
-                #     server_msg = cover_email.as_bytes()
-                #     logging.info("Replaced email with cover email")
+            #     if email["Subject"] is not None and "Confidential" in email["Subject"]:
+            #         # Replace the email with a cover email
+            #         cover_email = EmailMessage()
+            #         cover_email['Subject'] = 'Just testing'
+            #         cover_email.set_content('Just testing')
+            #         server_msg = cover_email.as_bytes()
+            #         logging.info("Replaced email with cover email")
 
                 # Add 'Handled by <username>' to the body of the email
                 # if email.is_multipart():

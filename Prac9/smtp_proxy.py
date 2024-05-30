@@ -1,3 +1,4 @@
+# Authors: Timothy Whitaker - u22744968, Scott Bebington - u21546216
 import socket
 import logging
 
